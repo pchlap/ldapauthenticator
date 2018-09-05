@@ -214,6 +214,18 @@ class LDAPAuthenticator(Authenticator):
         help="List of attributes to be searched"
     )
 
+    system_user_prefix = Unicode(
+        config=True,
+        default_value='',
+        allow_none=True,
+        help="""
+        Returns username with the given prefix
+
+        This is useful when LDAP usernames consist of only numbers. These are not valid
+        username on unix systems.
+        """
+    )
+
     def resolve_username(self, username_supplied_by_user):
         search_dn = self.lookup_dn_search_user
         if self.escape_userdn:
@@ -410,7 +422,10 @@ class LDAPAuthenticator(Authenticator):
                 self.log.warn(msg.format(username=username))
                 return None
 
-        return username
+        # Prefix username
+        system_username = self.system_user_prefix + username
+
+        return system_username
 
 
 if __name__ == "__main__":
