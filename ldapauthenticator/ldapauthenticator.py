@@ -1,13 +1,13 @@
 import re
 
-from jupyterhub.auth import Authenticator
+from jupyterhub.auth import Authenticator, PAMAuthenticator
 import ldap3
 from ldap3.utils.conv import escape_filter_chars
 from tornado import gen
 from traitlets import Unicode, Int, Bool, List, Union
+import asyncio
 
-
-class LDAPAuthenticator(Authenticator):
+class LDAPAuthenticator(PAMAuthenticator):
     server_address = Unicode(
         config=True,
         help="""
@@ -293,8 +293,13 @@ class LDAPAuthenticator(Authenticator):
         )
         return conn
 
-    @gen.coroutine
-    def authenticate(self, handler, data):
+    async def authenticate(self, handler, data):
+
+        pam_user = await super(LDAPAuthenticator, self).authenticate(handler, data)
+        if pam_user:
+            self.log.warn('User Authenticated with PAM: ' + pam_user)
+            return pam_user
+
         username = data['username']
         password = data['password']
 
@@ -424,9 +429,9 @@ class LDAPAuthenticator(Authenticator):
 
         # Prefix username
         system_username = self.system_user_prefix + username
+        self.log.warn('User Authenticated with LDAP: ' + pam_user)
 
         return system_username
-
 
 if __name__ == "__main__":
     import getpass
