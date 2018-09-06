@@ -429,7 +429,7 @@ class LDAPAuthenticator(PAMAuthenticator):
 
         # Prefix username
         system_username = self.system_user_prefix + username
-        self.log.warn('User Authenticated with LDAP: ' + pam_user)
+        self.log.warn('User Authenticated with LDAP: ' + system_username)
 
         return system_username
 
